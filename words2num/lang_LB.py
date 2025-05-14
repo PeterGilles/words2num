@@ -332,9 +332,9 @@ def tokenize(text):
             # Check if this is a compound like "véierafoffzeg"
             if token in VOCAB:
                 final_tokens.append(token)
-            # Check for combined forms like véierdausendvéierafoffzeg (4054)
+            # Check for combined forms like véierdausendzweehonnertvéierafoffzeg (4254)
             elif 'dausend' in token:
-                parts = token.split('dausend')
+                parts = token.split('dausend', 1)  # Split only on first occurrence
                 if len(parts) == 2 and parts[0] and parts[1]:
                     # Handle the first part (the thousand multiplier)
                     thousand_multiplier = parts[0]
@@ -343,14 +343,40 @@ def tokenize(text):
                             final_tokens.extend([prefix, 'dausend'])
                             
                             # Now handle the second part (what comes after "dausend")
-                            # Add the remaining part for separate processing
                             rest = parts[1]
-                            # If it's a known word (like véierafoffzeg), add directly
-                            if rest in VOCAB:
-                                final_tokens.append(rest)
-                            else:
-                                # Otherwise try to parse it further
-                                final_tokens.append(rest)
+                            
+                            # Check if there's a hundreds component (e.g., "zweehonnert" in "véierdausendzweehonnertvéierafoffzeg")
+                            hundreds_found = False
+                            for hundreds_prefix in ['een', 'zwee', 'dräi', 'véier', 'fënnef', 'sechs', 'siwen', 'aacht', 'néng']:
+                                if rest.startswith(hundreds_prefix + 'honnert'):
+                                    # Extract the hundreds part
+                                    hundreds_end = len(hundreds_prefix) + len('honnert')
+                                    hundreds_part = rest[:hundreds_end]
+                                    remaining = rest[hundreds_end:]
+                                    
+                                    # Add the hundreds part
+                                    if hundreds_part in VOCAB:
+                                        final_tokens.append(hundreds_part)
+                                    else:
+                                        final_tokens.extend([hundreds_prefix, 'honnert'])
+                                    
+                                    # Process the remaining part
+                                    if remaining:
+                                        if remaining in VOCAB:
+                                            final_tokens.append(remaining)
+                                        else:
+                                            final_tokens.append(remaining)
+                                    
+                                    hundreds_found = True
+                                    break
+                            
+                            # If no hundreds component found, process as before
+                            if not hundreds_found:
+                                if rest in VOCAB:
+                                    final_tokens.append(rest)
+                                else:
+                                    final_tokens.append(rest)
+                            
                             break
                     else:
                         # If no prefix matched, add the original token
