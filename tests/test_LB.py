@@ -35,7 +35,7 @@ class TestLuxembourgish(unittest.TestCase):
     def test_complex_numbers(self):
         """Test complex number expressions in Luxembourgish."""
         test_cases = {
-            "zwee dausend dräihonnert véierafoffzeg": 2354,
+            "zwee dausend dräihonnert véierafofzeg": 2354,
             "eng millioun fënnefhonnert dausend": 1500000,
             "dräi milliounen zweehonnert dausend": 3200000,
             "eenhonnert zweeadräisseg": 132,
@@ -50,12 +50,12 @@ class TestLuxembourgish(unittest.TestCase):
             # Hyphenated forms
             "zwee-honnert": 200,
             "dräi-honnert": 300,
-            "véier-a-foffzeg": 54, 
+            "véier-a-fofzeg": 54, 
             
             # Compound forms
             "zweehonnert": 200,
             "dräihonnert": 300,
-            "véierafoffzeg": 54,
+            "véierafofzeg": 54,
             "honnertzwee": 102,
             
             # Ordinals
@@ -64,13 +64,13 @@ class TestLuxembourgish(unittest.TestCase):
             "drëtten": 3,
             
             # Special combinations
-            "véier foffzeg": 54,  # digit followed by tens (no connecting word)
+            "véier fofzeg": 54,  # digit followed by tens (no connecting word)
             "Dräi Milliounen": 3000000,  # capitalization
             "véierandrësseg dausend": 34000,
             "zwee punkt dräi fënnef": 2.35,
             "dräi dausend an eenhonnert zwanzeg": 3120,
-            "véierdausendzweehonnertvéierafoffzeg": 4254,  # compound with thousands, hundreds and specific number
-            "véier-dausend-zweehonnert-véier-a-foffzeg": 4254,  # hyphenated version
+            "véierdausendzweehonnertvéierafofzeg": 4254,  # compound with thousands, hundreds and specific number
+            "véier-dausend-zweehonnert-véier-a-fofzeg": 4254,  # hyphenated version
         }
         
         for word, expected in test_cases.items():

@@ -50,7 +50,7 @@ w2n("zwanzeg", lang="lb")  # Returns: 20
 w2n("eenhonnert", lang="lb")  # Returns: 100
 
 # Complex expressions
-w2n("zwee dausend dräihonnert véierafoffzeg", lang="lb")  # Returns: 2354
+w2n("zwee dausend dräihonnert véierafofzeg", lang="lb")  # Returns: 2354
 w2n("eng millioun fënnefhonnert dausend", lang="lb")  # Returns: 1500000
 
 # Decimals

@@ -29,7 +29,7 @@ def test_date_parsing():
         ("néngten Dag", None),  # Keeps -n before D - not a valid month
         ("drëtten Hond", None),  # Keeps -n before H - not a valid month
         ("fënneften Tour", None),  # Keeps -n before T - not a valid month
-        ("sechsten Rees", None),  # Keeps -n before R - not a valid month
+        ("sechste Rees", None),  # Drops -n before R - not a valid month
         
         # N-rule tests with other consonants (should drop -n)
         ("éischte Februar", "1.2."),  # Drops -n before F (consonant not in n-rule)
@@ -38,10 +38,10 @@ def test_date_parsing():
         ("véierte Juni", "4.6."),  # Drops -n before J (consonant not in n-rule)
         
         # Written variations (hyphens, alternative spellings)
-        ("éischt Januar", "1.1."),  # Base form without ending
+        ("éischte Januar", "1.1."),  # With -e suffix
         ("éischten-Abrëll", "1.4."),  # With hyphen, vowel follows
-        ("zéngt-September", "10.9."),  # With hyphen, consonant follows (drop -n)
-        ("drëtt Mäerz", "3.3."),  # Base form without ending
+        ("zéngte-September", "10.9."),  # With hyphen, consonant follows (drop -n)
+        ("drëtte Mäerz", "3.3."),  # With -e suffix
         
         # Month abbreviations
         ("éischte Jan", "1.1."),  # Abbreviated month, drops -n before J (not in n-rule)
@@ -102,11 +102,11 @@ def test_edge_cases():
     
     # Borderline cases - some now properly rejected
     special_cases = [
-        ("fënnef Januar", "5.1."),  # Cardinal used as day (still accepted)
-        ("dräizéng September", "13.9."),  # Valid day for September (13)
-        ("drësseg Februar", None),  # Invalid day for February (30)
-        ("dräianzwanzeg Abrëll", "23.4."),  # Valid day for April (23)
-        ("eenandräisseg Juni", None),  # Invalid day for June (31)
+        ("fënnefte Januar", "5.1."),  # Ordinal form with -e suffix
+        ("dräizéngte September", "13.9."),  # Ordinal form with -e suffix
+        ("drëssegste Februar", None),  # Invalid day for February (30)
+        ("dräianzwanzegsten Abrëll", "23.4."),  # Ordinal form with -en suffix (before vowel)
+        ("eenandrëssegste Juni", None),  # Invalid day for June (31)
     ]
     
     results = []

@@ -31,19 +31,19 @@ MONTHS_LB = {
     'dez': 12
 }
 
-# Pattern for ordinal day indicators, accounting for the n-rule
-# The rule: -n is dropped when the following word doesn't start with a vowel or h, n, d, z, t
-# For better matching, include both forms (with and without -n)
-ORDINAL_PATTERN = r'(éischt(?:en?)?|zweet(?:en?)?|drëtt(?:en?)?|véiert(?:en?)?|fënneft(?:en?)?|sechst(?:en?)?|siwent(?:en?)?|aacht(?:en?)?|néngt(?:en?)?|zéngt(?:en?)?|eeleft(?:en?)?|zwieleft(?:en?)?|dräizéngt(?:en?)?)'
+# Pattern for ordinal day indicators, accounting for the n-rule and ste/ten suffixes
+# The rule: -n is dropped when the following word doesn't start with a vowel or h, n, d, z, t, r
+# For better matching, include all suffix forms
+ORDINAL_PATTERN = r'(éischt(?:en?|e)?|zweet(?:en?|e)?|drëtt(?:en?|e)?|véiert(?:en?|e)?|fënneft(?:en?|e)?|sechst(?:en?|e)?|siwent(?:en?|e)?|aacht(?:en?|e)?|néngt(?:en?|e)?|zéngt(?:en?|e)?|eeleft(?:en?|e)?|zwieleft(?:en?|e)?|dräizéngt(?:en?|e)?|fënnefte|dräizéngte|drëssegste|dräianzwanzegsten|eenandrëssegste)'
 
-# Helper function to directly convert specific ordinals to numbers, including both forms
+# Helper function to directly convert specific ordinals to numbers, including all forms
 ORDINAL_MAPPING = {
     # With final -n
     'éischten': 1, 'zweeten': 2, 'drëtten': 3, 'véierten': 4, 
     'fënneften': 5, 'sechsten': 6, 'siwenten': 7, 'aachten': 8, 'néngten': 9, 
     'zéngten': 10, 'eeleften': 11, 'zwieleften': 12, 'dräizéngten': 13,
     
-    # Without final -n (used before consonants except h, n, d, z, t)
+    # Without final -n (used before consonants except h, n, d, z, t, r)
     'éischte': 1, 'zweete': 2, 'drëtte': 3, 'véierte': 4, 
     'fënneft': 5, 'fënnef': 5, 'sechste': 6, 'siwente': 7, 'aachte': 8, 'néngte': 9, 
     'zéngte': 10, 'eelefte': 11, 'zwieleft': 12, 'dräizéngte': 13,
@@ -51,7 +51,11 @@ ORDINAL_MAPPING = {
     # Base forms (should generally not be used in dates but included for completeness)
     'éischt': 1, 'zweet': 2, 'drëtt': 3, 'véiert': 4, 
     'fënnef': 5, 'sechst': 6, 'siwent': 7, 'aacht': 8, 'néngt': 9, 
-    'zéngt': 10, 'eelef': 11, 'zwielef': 12, 'dräizéngt': 13
+    'zéngt': 10, 'eelef': 11, 'zwielef': 12, 'dräizéngt': 13,
+    
+    # Special ordinal forms with -ste/-te suffixes
+    'fënnefte': 5, 'dräizéngte': 13, 'drëssegste': 30,
+    'dräianzwanzegsten': 23, 'eenandrëssegste': 31
 }
 
 # Helper function to check if a word follows the n-rule

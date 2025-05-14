@@ -28,7 +28,7 @@ VOCAB = {
     'zwielef': (12, 'M'),
     'dräizéng': (13, 'M'),
     'véierzéng': (14, 'M'),
-    'foffzéng': (15, 'M'),
+    'fofzéng': (15, 'M'),    # Changed from 'foffzéng' to 'fofzéng'
     'siechzéng': (16, 'M'),
     'siwenzéng': (17, 'M'),
     'uechtzéng': (18, 'M'),
@@ -40,7 +40,7 @@ VOCAB = {
     'zwanzeg': (20, 'T'),
     'drësseg': (30, 'T'),
     'véierzeg': (40, 'T'),
-    'foffzeg': (50, 'T'),
+    'fofzeg': (50, 'T'),    # Changed from 'foffzeg' to 'fofzeg'
     'sechzeg': (60, 'T'),
     'siechzeg': (60, 'T'),  # Alternative spelling for 60
     'siwenzeg': (70, 'T'),
@@ -58,6 +58,7 @@ VOCAB = {
     'aachtanzwanzeg': (28, 'M'),
     'nénganzwanzeg': (29, 'M'),
     'zweeandrësseg': (32, 'M'),
+    'zweeadräisseg': (32, 'M'),  # Alternative spelling for 32
     'dräiandrësseg': (33, 'M'),
     'véierandrësseg': (34, 'M'), 
     'fënnefandrësseg': (35, 'M'),
@@ -67,7 +68,7 @@ VOCAB = {
     'néngandrësseg': (39, 'M'),
     
     # -a- compounds (especially for 40s, 50s, 60s, 70s)
-    'véierafoffzeg': (54, 'M'),
+    'véierafofzeg': (54, 'M'),  # Changed from 'véierafoffzeg' to 'véierafofzeg'
     'véieranachtzeg': (84, 'M'),
     
     # Hundreds
@@ -187,8 +188,8 @@ VOCAB = {
 
 # Handle composite forms from decades
 for i in range(1, 10):
-    for tens, ten_val in [('drësseg', 30), ('dräisseg', 30), ('véierzeg', 40), ('foffzeg', 50), 
-                         ('sechzeg', 60), ('siwenzeg', 70), ('achtzeg', 80), ('nonnzeg', 90)]:
+    for tens, ten_val in [('drësseg', 30), ('véierzeg', 40), ('fofzeg', 50), 
+                         ('sechzeg', 60), ('siechzeg', 60), ('siwenzeg', 70), ('achtzeg', 80), ('nonnzeg', 90)]:
         # Create entries for compounds like "eenadrësseg", "zweeasiwenzeg", etc.
         digit = ''
         if i == 1:
@@ -211,7 +212,7 @@ for i in range(1, 10):
             digit = 'néng'
         
         # Add joiner 'a' for numbers starting with véier, fënnef, sechs, siwen
-        joiner = 'a' if tens.startswith(('véier', 'foff', 'sech', 'siwen')) else 'an'
+        joiner = 'a' if tens.startswith(('véier', 'fof', 'sech', 'siwen')) else 'an'
         compound = f"{digit}{joiner}{tens}"
         VOCAB[compound] = (ten_val + i, 'M')
 
@@ -359,7 +360,7 @@ def tokenize(text):
     Tokenize Luxembourgish number expression into individual tokens.
     
     Handles various forms:
-    - Hyphenated forms: "véier-a-foffzeg" → "véierafoffzeg"
+    - Hyphenated forms: "véier-a-fofzeg" → "véierafofzeg"
     - Compound forms: "dräihonnert" and "dräi-honnert" → "dräi", "honnert"
     - Special case handling for unusual compounds and words
     - Complex compounds like "nonnzénghonnrtvéieranachtzeg" (1984)
@@ -396,12 +397,27 @@ def tokenize(text):
             hyphenated_patterns[no_hyphen] = word
     
     # Special case preprocessing for 'a' joining first
-    # "véier-a-foffzeg" → "véierafoffzeg"
+    # "véier-a-fofzeg" → "véierafofzeg"
+    # First replace any remaining 'foff' with 'fof'
+    text = text.replace('foff', 'fof')
     text = re.sub(r'([a-zéëöüäêè]+)-a-([a-zéëöüäêè]+)', r'\1a\2', text)
     
-    # Normalize hyphenated forms and remove capitalization
-    # "Dräi-Honnert" → "dräihonnert"
-    text = re.sub(r'([a-zäëöüéêè]+)-([a-zéëöüäêè]+)', r'\1\2', text)
+    # Special case for long compound numbers (like véierdausendzweehonnertvéierafofzeg)
+    if len(text) > 25 and 'dausend' in text and ('honnert' in text or 'honnrt' in text):
+        # If it's a single long word without spaces
+        if ' ' not in text:
+            # Insert spaces at known breakpoints to help tokenization
+            for breakpoint in ['dausend', 'honnert', 'honnrt']:
+                if breakpoint in text:
+                    parts = text.split(breakpoint)
+                    text = parts[0] + ' ' + breakpoint + ' ' + ''.join(parts[1:])
+    
+    # Normalize hyphenated forms and remove capitalization, but preserve spaces
+    # First, replace hyphens with spaces
+    text = text.replace('-', ' ')
+    
+    # "véier-a-fofzeg" style was already handled above
+    # Process the remaining "Dräi Honnert" style compounds during tokenization
     
     # Split by whitespace, commas, and optionally "an"/"a" (Luxembourgish for "and")
     tokens = re.split(r"[\s,]+(?:an|a)?", text)
@@ -482,7 +498,7 @@ def tokenize(text):
                 i += 1  # Skip the next token since we've handled it
             else:
                 final_tokens.append(token)
-        # Handle special case for compounds like véierdausendvéierafoffzeg (4054)
+        # Handle special case for compounds like véierdausendvéierafofzeg (4054)
         elif "dausend" in token and len(token) > 7:
             # Try to extract the prefix (the multiplier for thousand)
             for prefix in ['een', 'zwee', 'dräi', 'véier', 'fënnef', 'sechs', 'siwen', 'aacht', 'néng']:
@@ -503,10 +519,10 @@ def tokenize(text):
                 final_tokens.append(token)
         # Handle compound forms with "-a-" or "-an-" 
         elif 'an' in token or 'a' in token:
-            # Check if this is a compound like "véierafoffzeg"
+            # Check if this is a compound like "véierafofzeg"
             if token in VOCAB:
                 final_tokens.append(token)
-            # Check for combined forms like véierdausendzweehonnertvéierafoffzeg (4254)
+            # Check for combined forms like véierdausendzweehonnertvéierafofzeg (4254)
             elif 'dausend' in token:
                 parts = token.split('dausend', 1)  # Split only on first occurrence
                 if len(parts) == 2 and parts[0] and parts[1]:
@@ -519,18 +535,20 @@ def tokenize(text):
                             # Now handle the second part (what comes after "dausend")
                             rest = parts[1]
                             
-                            # Check if there's a hundreds component (e.g., "zweehonnert" in "véierdausendzweehonnertvéierafoffzeg")
+                            # Check if there's a hundreds component (e.g., "zweehonnert" in "véierdausendzweehonnertvéierafofzeg")
                             hundreds_found = False
                             for hundreds_prefix in ['een', 'zwee', 'dräi', 'véier', 'fënnef', 'sechs', 'siwen', 'aacht', 'néng']:
-                                if rest.startswith(hundreds_prefix + 'honnert'):
-                                    # Extract the hundreds part
-                                    hundreds_end = len(hundreds_prefix) + len('honnert')
+                                if rest.startswith(hundreds_prefix + 'honnert') or rest.startswith(hundreds_prefix + 'honnrt'):
+                                    # Extract the hundreds part - handle alternative spellings
+                                    hundreds_suffix = 'honnert' if rest.startswith(hundreds_prefix + 'honnert') else 'honnrt'
+                                    hundreds_end = len(hundreds_prefix) + len(hundreds_suffix)
                                     hundreds_part = rest[:hundreds_end]
                                     remaining = rest[hundreds_end:]
                                     
                                     # Add the hundreds part
-                                    if hundreds_part in VOCAB:
-                                        final_tokens.append(hundreds_part)
+                                    hundreds_key = hundreds_prefix + 'honnert'  # Use standard form
+                                    if hundreds_key in VOCAB:
+                                        final_tokens.append(hundreds_key)
                                     else:
                                         final_tokens.extend([hundreds_prefix, 'honnert'])
                                     
@@ -558,8 +576,10 @@ def tokenize(text):
                 else:
                     final_tokens.append(token)
             else:
-                # Try to split at "a" or "an" - e.g., "véierafoffzeg" → "véier", "foffzeg"
+                # Try to split at "a" or "an" - e.g., "véierafofzeg" → "véier", "fofzeg"
                 for connector in ['an', 'a']:
+                    # First replace any remaining 'foff' with 'fof'
+                    token = token.replace('foff', 'fof')
                     parts = token.split(connector)
                     if len(parts) == 2 and parts[0] in VOCAB and parts[1] in VOCAB:
                         if parts[0] in ['een', 'zwee', 'dräi', 'véier', 'fënnef', 'sechs', 'siwen', 'aacht', 'néng'] and parts[1] in ['zwanzeg', 'drësseg', 'dräisseg', 'véierzeg', 'foffzeg', 'sechzeg', 'siwenzeg', 'achtzeg', 'nonnzeg']:
@@ -726,9 +746,9 @@ def evaluate(text):
         if decimal_part == 0:
             return integer_part  # Return integer directly if no decimal part
         elif decimal_indicator == "komma":
-            # Format with comma as decimal separator
-            result_str = str(result).replace('.', ',')
-            return result_str
+            # Format with comma as decimal separator for display purposes
+            # but we need to return a numeric value for calculations
+            return result
         elif decimal_indicator == "punkt":
             # Keep period as decimal separator
             return result
