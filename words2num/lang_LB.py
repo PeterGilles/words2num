@@ -708,18 +708,29 @@ def evaluate(text):
     # Regular case: cardinal or decimal
     result = (compute(tokens) + compute_decimal(decimal_tokens)) * compute_multipliers(mul_tokens)
     
-    # For Luxembourgish, return a string with comma (,) as decimal separator if it's a decimal number
-    if decimal_tokens:
-        # Convert to string with comma as decimal separator
+    # For Luxembourgish, use different decimal separators based on the word used
+    if decimal_tokens and len(text.split()) >= 3:  # Need at least 3 words for decimal expression
+        words = text.lower().split()
+        
+        # Check for decimal indicator word
+        decimal_indicator = None
+        for word in words:
+            if word in ["komma", "punkt"]:
+                decimal_indicator = word
+                break
+                
+        # Only apply string formatting if decimal part exists
         integer_part = int(result)
         decimal_part = result - integer_part
         
-        # Format with comma
         if decimal_part == 0:
             return integer_part  # Return integer directly if no decimal part
-        else:
+        elif decimal_indicator == "komma":
             # Format with comma as decimal separator
             result_str = str(result).replace('.', ',')
             return result_str
+        elif decimal_indicator == "punkt":
+            # Keep period as decimal separator
+            return result
     
     return result

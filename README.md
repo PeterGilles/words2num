@@ -54,8 +54,8 @@ w2n("zwee dausend dräihonnert véierafoffzeg", lang="lb")  # Returns: 2354
 w2n("eng millioun fënnefhonnert dausend", lang="lb")  # Returns: 1500000
 
 # Decimals
-w2n("dräi komma véier", lang="lb")  # Returns: "3,4"
-w2n("zwee punkt néng fënnef", lang="lb")  # Returns: "2,95"
+w2n("dräi komma véier", lang="lb")  # Returns: "3,4" (comma as decimal separator)
+w2n("zwee punkt néng fënnef", lang="lb")  # Returns: 2.95 (period as decimal separator)
 
 # Special forms
 w2n("zwee-honnert", lang="lb")  # Returns: 200 (hyphenated)
