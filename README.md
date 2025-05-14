@@ -93,9 +93,9 @@ date_to_num_lb("drëtte Mäerz")  # Returns: "3.3." (drops -n before M)
 date_to_num_lb("véierte September")  # Returns: "4.9." (drops -n before S)
 
 # Abbreviations
-date_to_num_lb("éischten Jan")  # Returns: "1.1."
-date_to_num_lb("zweete Feb")  # Returns: "2.2."
-date_to_num_lb("drëtten Dez")  # Returns: "3.12."
+date_to_num_lb("éischte Jan")  # Returns: "1.1."  # Drops -n before J
+date_to_num_lb("zweete Feb")  # Returns: "2.2."  # Drops -n before F
+date_to_num_lb("drëtten Dez")  # Returns: "3.12."  # Keeps -n before D
 
 # Hyphenated forms
 date_to_num_lb("éischten-Abrëll")  # Returns: "1.4."

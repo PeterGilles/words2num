@@ -44,10 +44,10 @@ def test_date_parsing():
         ("drëtt Mäerz", "3.3."),  # Base form without ending
         
         # Month abbreviations
-        ("éischten Jan", "1.1."),  # Abbreviated month, keeps -n before vowel
-        ("zwieleften Feb", "12.2."),  # Abbreviated month, keeps -n before consonant in n-rule
-        ("néngten Dez", "9.12."),  # Abbreviated month, keeps -n before consonant in n-rule
-        ("drëtte Sep", "3.9."),  # Abbreviated month, drops -n before consonant not in n-rule
+        ("éischte Jan", "1.1."),  # Abbreviated month, drops -n before J (not in n-rule)
+        ("zweete Feb", "2.2."),  # Abbreviated month, drops -n before F (not in n-rule)
+        ("néngten Dez", "9.12."),  # Abbreviated month, keeps -n before D (in n-rule)
+        ("drëtte Sep", "3.9."),  # Abbreviated month, drops -n before S (not in n-rule)
         
         # Year patterns (1900s)
         ("éischten Abrëll nonnzénghonnertaacht", "1.4.1908"),
