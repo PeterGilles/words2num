@@ -318,11 +318,45 @@ def tokenize(text):
                 i += 1  # Skip the next token since we've handled it
             else:
                 final_tokens.append(token)
+        # Handle special case for compounds like véierdausendvéierafoffzeg (4054)
+        elif token.endswith('dausend') and len(token) > 7:
+            # Try to extract the prefix (the multiplier for thousand)
+            for prefix in ['een', 'zwee', 'dräi', 'véier', 'fënnef', 'sechs', 'siwen', 'aacht', 'néng']:
+                if token.startswith(prefix) and token[len(prefix):] == 'dausend':
+                    final_tokens.extend([prefix, 'dausend'])
+                    break
+            else:
+                final_tokens.append(token)
         # Handle compound forms with "-a-" or "-an-"
         elif 'an' in token or 'a' in token:
             # Check if this is a compound like "véierafoffzeg"
             if token in VOCAB:
                 final_tokens.append(token)
+            # Check for combined forms like véierdausendvéierafoffzeg (4054)
+            elif 'dausend' in token:
+                parts = token.split('dausend')
+                if len(parts) == 2 and parts[0] and parts[1]:
+                    # Handle the first part (the thousand multiplier)
+                    thousand_multiplier = parts[0]
+                    for prefix in ['een', 'zwee', 'dräi', 'véier', 'fënnef', 'sechs', 'siwen', 'aacht', 'néng']:
+                        if thousand_multiplier == prefix:
+                            final_tokens.extend([prefix, 'dausend'])
+                            
+                            # Now handle the second part (what comes after "dausend")
+                            # Add the remaining part for separate processing
+                            rest = parts[1]
+                            # If it's a known word (like véierafoffzeg), add directly
+                            if rest in VOCAB:
+                                final_tokens.append(rest)
+                            else:
+                                # Otherwise try to parse it further
+                                final_tokens.append(rest)
+                            break
+                    else:
+                        # If no prefix matched, add the original token
+                        final_tokens.append(token)
+                else:
+                    final_tokens.append(token)
             else:
                 # Try to split at "a" or "an" - e.g., "véierafoffzeg" → "véier", "foffzeg"
                 for connector in ['an', 'a']:

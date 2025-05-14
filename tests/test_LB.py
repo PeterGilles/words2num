@@ -69,6 +69,8 @@ class TestLuxembourgish(unittest.TestCase):
             "véierandrësseg dausend": 34000,
             "zwee punkt dräi fënnef": 2.35,
             "dräi dausend an eenhonnert zwanzeg": 3120,
+            "véierdausendvéierafoffzeg": 4254,  # compound with thousands and specific number
+            "véier-dausend-véier-a-foffzeg": 4254,  # hyphenated version
         }
         
         for word, expected in test_cases.items():

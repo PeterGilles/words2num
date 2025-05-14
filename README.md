@@ -6,7 +6,7 @@ Inverse text normalization for numbers. Converts number words to their numeric r
 
 - **English (en-US)**: "forty-two hundred and forty-two" → 4242
 - **Spanish (es-US)**: "cuarenta y dos cientos cuarenta y dos" → 4242
-- **Luxembourgish (lb/lb-LU)**: "véierafoffzeg honnert véierafoffzeg" → 4254
+- **Luxembourgish (lb/lb-LU)**: "véierdausendvéierafoffzeg" → 4254
 
 ## Usage
 
