@@ -706,4 +706,20 @@ def evaluate(text):
         return result * compute_multipliers(mul_tokens)
         
     # Regular case: cardinal or decimal
-    return (compute(tokens) + compute_decimal(decimal_tokens)) * compute_multipliers(mul_tokens)
+    result = (compute(tokens) + compute_decimal(decimal_tokens)) * compute_multipliers(mul_tokens)
+    
+    # For Luxembourgish, return a string with comma (,) as decimal separator if it's a decimal number
+    if decimal_tokens:
+        # Convert to string with comma as decimal separator
+        integer_part = int(result)
+        decimal_part = result - integer_part
+        
+        # Format with comma
+        if decimal_part == 0:
+            return integer_part  # Return integer directly if no decimal part
+        else:
+            # Format with comma as decimal separator
+            result_str = str(result).replace('.', ',')
+            return result_str
+    
+    return result
