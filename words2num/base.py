@@ -1,9 +1,8 @@
-
 """Denormalize numbers, given normalized input.
 """
 from . import lang_EN_US
 from . import lang_ES_US
-
+from . import lang_LB
 
 CONVERTER_CLASSES = {
     'en': lang_EN_US.evaluate,
@@ -11,6 +10,8 @@ CONVERTER_CLASSES = {
     'es': lang_ES_US.evaluate,
     'es_US': lang_ES_US.evaluate,
     'es_MX': lang_ES_US.evaluate,
+    'lb': lang_LB.evaluate,
+    'lb_LU': lang_LB.evaluate,
 }
 
 
