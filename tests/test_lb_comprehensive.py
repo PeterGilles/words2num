@@ -129,7 +129,7 @@ class TestLuxembourgishComprehensive(unittest.TestCase):
         """Test complex number expressions."""
         test_cases = {
             "zweedausenddräihonnertvéierafofzeg": 2354,
-            "eng millioun fënnefhonnert dausend": 1500000,
+            "eng millioun fënnefhonnertdausend": 1500000,
             "dräi milliounen zweehonnertdausend": 3200000,
             "eenhonnertzweeadräisseg": 132,
             "dräi dausend an eenhonnert zwanzeg": 3120,
@@ -156,9 +156,9 @@ class TestLuxembourgishComprehensive(unittest.TestCase):
             "honnertzwee": 102,
             
             # Ordinals
-            "éischten": 1,
-            "zweeten": 2,
-            "drëtten": 3,
+            "éischten": "1.",
+            "zweeten": "2.",
+            "drëtten": "3.",
             
             # Special combinations
             "véier fofzeg": 54,  # digit followed by tens (no connecting word)

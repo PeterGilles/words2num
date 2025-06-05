@@ -549,6 +549,9 @@ def tokenize(text):
         raise ValueError(f"Invalid number word: '{e}' in {text}")
     # Convert decimal_tokens to (value, label) tuples
     decimal_tokens = [VOCAB[t] if isinstance(t, str) and t in VOCAB else t for t in decimal_tokens]
+    print(f"DEBUG: text={text}, tokens={tokens}")
+    # Normalize tokens to (value, label) tuples
+    tokens = [VOCAB[t] if isinstance(t, str) and t in VOCAB else t for t in tokens]
     return tokens, decimal_tokens, mul_tokens
 
 
@@ -650,14 +653,25 @@ def evaluate(text):
     Handles cardinal, ordinal, and decimal numbers.
     For ordinals, returns the base number value (without suffix).
     """
+    text = text.lower()
     tokens, decimal_tokens, mul_tokens = tokenize(text)
     if not tokens and not decimal_tokens:
         raise ValueError(f"No valid tokens in {text}")
-        
+    
+    # Check for single number word under 13 (cardinal, not ordinal)
+    if (
+        len(tokens) == 1 and
+        not decimal_tokens and
+        not mul_tokens and
+        tokens[0][1] in ('D', 'M') and
+        tokens[0][0] < 13
+    ):
+        raise ValueError(f"Numbers under 13 ('{text.strip()}') should not be converted")
+    
     # Check if we're dealing with ordinals
     if tokens and tokens[0][1] == 'O':
-        # For ordinals, just return the base value
-        return tokens[0][0]
+        # For ordinals, return the base value as a string with a period
+        return f"{tokens[0][0]}."
         
     # Detect special case of two tokens: digit followed by tens place
     # e.g., "véier foffzeg" meaning "four-fifty" (54)
