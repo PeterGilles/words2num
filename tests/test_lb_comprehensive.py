@@ -170,5 +170,144 @@ class TestLuxembourgishComprehensive(unittest.TestCase):
             with self.subTest(word=word):
                 self.assertEqual(w2n(word, lang='lb'), expected)
 
+    def test_compound_numbers(self):
+        test_cases = [
+            ('nonzénghonnertnénganzwanzeg', 1929),
+            ('nonzéng', 19),
+            ('nonzeg', 90),
+            ('dräizéng', 13),
+            ('véierzéng', 14),
+            ('fofzéng', 15),
+            ('siechzéng', 16),
+            ('siwenzéng', 17),
+            ('uechtzéng', 18),
+            ('zwanzeg', 20),
+            ('drësseg', 30),
+            ('véierzeg', 40),
+            ('fofzeg', 50),
+            ('sechzeg', 60),
+            ('siwenzeg', 70),
+            ('achtzeg', 80),
+            ('eenafofzeg', 51),
+            ('dräiafofzeg', 53),
+            ('véierafofzeg', 54),
+            ('eenasechzeg', 61),
+            ('dräiasechzeg', 63),
+            ('véierasechzeg', 64),
+            ('néngafofzeg', 59),
+            ('dräiandrësseg', 33),
+            ('véierandrësseg', 34),
+            ('néngandrësseg', 39),
+            ('eenhonnert', 100),
+            ('zweehonnert', 200),
+            ('dräihonnert', 300),
+            ('véierhonnert', 400),
+            ('fënnefhonnert', 500),
+            ('sechshonnert', 600),
+            ('siwenhonnert', 700),
+            ('aachthonnert', 800),
+            ('nénghonnert', 900),
+            ('eenhonnertnéngafofzeg', 159),
+            ('dräihonnertdräizéng', 313),
+            ('dräihonnertvéierafofzeg', 354),
+            ('eendausend', 1000),
+            ('zweedausend', 2000),
+            ('dräidausend', 3000),
+            ('véierdausend', 4000),
+            ('fënnefdausend', 5000),
+            ('sechsdausend', 6000),
+            ('siwendausend', 7000),
+            ('aachtdausend', 8000),
+            ('néngdausend', 9000),
+            ('eendausenddräihonnertdräizéng', 1313),
+            ('zweedausendfofzéng', 2015),
+            ('zéngdausend', 10000),
+            ('eelefdausend', 11000),
+            ('zwielefdausend', 12000),
+            ('zéngdausenddräihonnertdräizéng', 10313),
+            ('eelefdausendfofzéng', 11015),
+            ('dräi komma véier', 3.4),
+            ('zwee komma néng fënnef', 2.95),
+            ('eenhonnert komma null eent', 100.01),
+            ('zwee punkt dräi fënnef', 2.35),
+            ('zweedausenddräihonnertvéierafofzeg', 2354),
+            ('eng millioun fënnefhonnertdausend', 1500000),
+            ('dräi milliounen zweehonnertdausend', 3200000),
+            ('eenhonnertzweeadräisseg', 132),
+            ('dräi dausend an eenhonnert zwanzeg', 3120),
+            ('véierdausendzweehonnertvéierafofzeg', 4254),
+            ('zwee-honnert', 200),
+            ('dräi-honnert', 300),
+            ('véier-a-fofzeg', 54),
+            ('véier-dausend-zweehonnert-véier-a-fofzeg', 4254),
+            ('zweehonnert', 200),
+            ('dräihonnert', 300),
+            ('véierafofzeg', 54),
+            ('honnertzwee', 102),
+            ('éischten', '1.'),
+            ('zweeten', '2.'),
+            ('drëtten', '3.'),
+            ('véier fofzeg', 54),
+            ('Dräi Milliounen', 3000000),
+            ('véierandrëssegdausend', 34000)
+        ]
+        
+        for word, expected in test_cases:
+            with self.subTest(word=word):
+                self.assertEqual(w2n(word, lang='lb'), expected)
+
+    def test_year_numbers(self):
+        test_cases = [
+            ('nonzénghonnertnénganzwanzeg', 1929),
+            ('nonzénghonnertdräianzwanzeg', 1923),
+            ('nonzénghonnertzweeanzwanzeg', 1922),
+            ('nonzénghonnertvéieranzwanzeg', 1924),
+            ('nonzénghonnertfënnefanzwanzeg', 1925),
+            ('nonzénghonnertsechsanzwanzeg', 1926),
+            ('nonzénghonnertsiwenanzwanzeg', 1927),
+            ('nonzénghonnertaachtanzwanzeg', 1928),
+            ('nonzénghonnertzéng', 1910),
+            ('nonzénghonnerteelef', 1911),
+            ('nonzénghonnertzwielef', 1912),
+            ('nonzénghonnertdräizéng', 1913),
+            ('nonzénghonnertvéierzéng', 1914),
+            ('nonzénghonnertfofzéng', 1915),
+            ('nonzénghonnertsiechzéng', 1916),
+            ('nonzénghonnertsiwenzéng', 1917),
+            ('nonzénghonnertuechtzéng', 1918),
+            ('nonzénghonnertnonzéng', 1919),
+            ('nonzénghonnertzwanzeg', 1920),
+            ('nonzénghonnertdrësseg', 1930),
+            ('nonzénghonnertvéierzeg', 1940),
+            ('nonzénghonnertfofzeg', 1950),
+            ('nonzénghonnertsechzeg', 1960),
+            ('nonzénghonnertsiwenzeg', 1970),
+            ('nonzénghonnertachtzeg', 1980),
+            ('nonzénghonnertnonzeg', 1990),
+        ]
+        
+        for word, expected in test_cases:
+            with self.subTest(word=word):
+                self.assertEqual(w2n(word, lang='lb'), expected)
+
+    def test_year_number_generalization(self):
+        test_cases = [
+            # 1800s
+            ('uechtzénghonnertdräizéng', 1813),
+            ('uechtzénghonnertzéng', 1810),
+            ('uechtzénghonnertnénganzwanzeg', 1829),
+            # 1900s
+            ('nonzénghonnertdräizéng', 1913),
+            ('nonzénghonnertzéng', 1910),
+            ('nonzénghonnertnénganzwanzeg', 1929),
+            # 2000s (should be cardinal)
+            ('zweedausend', 2000),
+            ('zweedausenddräizéng', 2013),
+            ('zweedausendnénganzwanzeg', 2029),
+        ]
+        for word, expected in test_cases:
+            with self.subTest(word=word):
+                self.assertEqual(w2n(word, lang='lb'), expected)
+
 if __name__ == '__main__':
     unittest.main() 

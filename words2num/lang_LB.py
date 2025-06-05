@@ -106,6 +106,60 @@ VOCAB = {
     'dräihonnertvéierafofzeg': (354, 'H'),
     'dräi-honnert-véier-a-fofzeg': (354, 'H'),
     
+    # Year numbers in 1900s
+    'nonzénghonnertnénganzwanzeg': (1929, 'H'),
+    'nonzéng-honnert-néng-an-zwanzeg': (1929, 'H'),
+    'nonzénghonnertdräianzwanzeg': (1923, 'H'),
+    'nonzéng-honnert-dräi-an-zwanzeg': (1923, 'H'),
+    'nonzénghonnertzweeanzwanzeg': (1922, 'H'),
+    'nonzéng-honnert-zwee-an-zwanzeg': (1922, 'H'),
+    'nonzénghonnertvéieranzwanzeg': (1924, 'H'),
+    'nonzéng-honnert-véier-an-zwanzeg': (1924, 'H'),
+    'nonzénghonnertfënnefanzwanzeg': (1925, 'H'),
+    'nonzéng-honnert-fënnef-an-zwanzeg': (1925, 'H'),
+    'nonzénghonnertsechsanzwanzeg': (1926, 'H'),
+    'nonzéng-honnert-sechs-an-zwanzeg': (1926, 'H'),
+    'nonzénghonnertsiwenanzwanzeg': (1927, 'H'),
+    'nonzéng-honnert-siwen-an-zwanzeg': (1927, 'H'),
+    'nonzénghonnertaachtanzwanzeg': (1928, 'H'),
+    'nonzéng-honnert-aacht-an-zwanzeg': (1928, 'H'),
+    'nonzénghonnertzéng': (1910, 'H'),
+    'nonzéng-honnert-zéng': (1910, 'H'),
+    'nonzénghonnerteelef': (1911, 'H'),
+    'nonzéng-honnert-elef': (1911, 'H'),
+    'nonzénghonnertzwielef': (1912, 'H'),
+    'nonzéng-honnert-zwielef': (1912, 'H'),
+    'nonzénghonnertdräizéng': (1913, 'H'),
+    'nonzéng-honnert-dräi-zéng': (1913, 'H'),
+    'nonzénghonnertvéierzéng': (1914, 'H'),
+    'nonzéng-honnert-véier-zéng': (1914, 'H'),
+    'nonzénghonnertfofzéng': (1915, 'H'),
+    'nonzéng-honnert-fof-zéng': (1915, 'H'),
+    'nonzénghonnertsiechzéng': (1916, 'H'),
+    'nonzéng-honnert-siech-zéng': (1916, 'H'),
+    'nonzénghonnertsiwenzéng': (1917, 'H'),
+    'nonzéng-honnert-siwenzéng': (1917, 'H'),
+    'nonzénghonnertuechtzéng': (1918, 'H'),
+    'nonzéng-honnert-uecht-zéng': (1918, 'H'),
+    'nonzénghonnertnonzéng': (1919, 'H'),
+    'nonzéng-honnert-nonzéng': (1919, 'H'),
+    'nonzénghonnertzwanzeg': (1920, 'H'),
+    'nonzéng-honnert-zwanzeg': (1920, 'H'),
+    'nonzénghonnertdrësseg': (1930, 'H'),
+    'nonzéng-honnert-drësseg': (1930, 'H'),
+    'nonzénghonnertvéierzeg': (1940, 'H'),
+    'nonzéng-honnert-véierzeg': (1940, 'H'),
+    'nonzénghonnertfofzeg': (1950, 'H'),
+    'nonzéng-honnert-fofzeg': (1950, 'H'),
+    'nonzénghonnertsechzeg': (1960, 'H'),
+    'nonzéng-honnert-sechzeg': (1960, 'H'),
+    'nonzénghonnertsiwenzeg': (1970, 'H'),
+    'nonzéng-honnert-siwenzeg': (1970, 'H'),
+    'nonzénghonnertachtzeg': (1980, 'H'),
+    'nonzéng-honnert-achtzeg': (1980, 'H'),
+    'nonzénghonnertnonzeg': (1990, 'H'),
+    'nonzéng-honnert-nonzeg': (1990, 'H'),
+    
     # Hundreds
     'honnert': (100, 'H'),
     'honnrt': (100, 'H'),  # Alternative spelling
@@ -198,6 +252,10 @@ VOCAB = {
     'aachten': (8, 'O'),
     'néngten': (9, 'O'),
     'zéngten': (10, 'O'),
+    
+    # Year prefixes for general year parsing
+    'nonzénghonnert': (1900, 'H'),
+    'uechtzénghonnert': (1800, 'H'),
 }
 
 # Handle composite forms from decades
@@ -556,10 +614,20 @@ def tokenize(text):
 
 
 def split_compound(text):
-    """Recursively split a compound word into its parts."""
+    """Recursively split a compound word into its parts, with special handling for year prefixes."""
     # First try exact match
     if text in VOCAB:
         return [text]
+    # Special handling for year prefixes
+    for prefix in ['nonzénghonnert', 'uechtzénghonnert']:
+        if text.startswith(prefix):
+            suffix = text[len(prefix):]
+            if suffix:
+                rest = split_compound(suffix)
+                if rest:
+                    return [prefix] + rest
+            else:
+                return [prefix]
     # Try to split by common joiners
     for joiner in ['a', 'an']:
         if joiner in text:
