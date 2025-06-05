@@ -46,6 +46,12 @@ VOCAB = {
     'achtzeg': (80, 'T'),
     'nonzeg': (90, 'T'),
     
+    # Large numbers
+    'millioun': (1000000, 'L'),
+    'milliounen': (1000000, 'L'),
+    'milliard': (1000000000, 'L'),
+    'milliarden': (1000000000, 'L'),
+    
     # Common compounds for 21-29 and other -an- compounds
     'eenanzwanzeg': (21, 'M'),
     'zweeanzwanzeg': (22, 'M'),
@@ -250,43 +256,72 @@ class FST:
             # Ordinals just return their value directly
             return n
 
-        self.value = 0
-        self.state = 'S'
-        # Define state transition graph
+        # Define the edges for the FST
         self.edges = {
-            ('S', 'Z'): f_zero,    # 0
-            ('S', 'D'): f_add,     # 9
-            ('S', 'T'): f_add,     # 90
-            ('S', 'M'): f_add,     # 19
-            ('S', 'H'): f_add,     # 100
-            ('S', 'X'): f_add,     # 1000
-            ('S', 'O'): f_ordinal, # ordinal (directly return value)
-            ('S', 'F'): f_ret,     # 1
-            ('D', 'H'): f_mul_hundred,  # 9 hundred
-            ('D', 'X'): f_mul,     # 9 thousand
-            ('D', 'T'): f_add,     # 9 + 90 (special LB case)
-            ('D', 'F'): f_ret,     # 9
-            ('T', 'D'): f_add,     # 90 + 9
-            ('T', 'H'): f_mul_hundred,  # 90 hundred
-            ('T', 'X'): f_mul,     # 90 thousand
-            ('T', 'F'): f_ret,     # 90
-            ('M', 'H'): f_mul_hundred,  # 19 hundred
-            ('M', 'X'): f_mul,     # 19 thousand
-            ('M', 'F'): f_ret,     # 19
-            ('H', 'D'): f_add,     # 900 + 9
-            ('H', 'T'): f_add,     # 900 + 90
-            ('H', 'M'): f_add,     # 900 + 19
-            ('H', 'X'): f_mul,     # 900 thousand
-            ('H', 'F'): f_ret,     # 900
-            ('X', 'D'): f_add,     # 9000 + 9
-            ('X', 'T'): f_add,     # 9000 + 90
-            ('X', 'M'): f_add,     # 9000 + 19
-            ('X', 'H'): f_add,     # 9000 + 900
-            ('X', 'X'): f_mul,     # 1000 * 1000 (million)
-            ('X', 'F'): f_ret,     # 9000
-            ('Z', 'F'): f_ret,     # 0
-            ('O', 'F'): f_ret,     # ordinals to finish
+            ('S', 'Z'): f_zero,
+            ('S', 'D'): f_add,
+            ('S', 'M'): f_add,
+            ('S', 'T'): f_add,
+            ('S', 'H'): f_add,
+            ('S', 'X'): f_add,
+            ('S', 'L'): f_add,
+            ('S', 'O'): f_ordinal,
+            ('D', 'D'): f_add,
+            ('D', 'M'): f_add,
+            ('D', 'T'): f_add,
+            ('D', 'H'): f_add,
+            ('D', 'X'): f_add,
+            ('D', 'L'): f_add,
+            ('D', 'P'): f_add,  # Allow transition to decimal point
+            ('M', 'D'): f_add,
+            ('M', 'M'): f_add,
+            ('M', 'T'): f_add,
+            ('M', 'H'): f_add,
+            ('M', 'X'): f_add,
+            ('M', 'L'): f_add,
+            ('M', 'P'): f_add,  # Allow transition to decimal point
+            ('T', 'D'): f_add,
+            ('T', 'M'): f_add,
+            ('T', 'T'): f_add,
+            ('T', 'H'): f_add,
+            ('T', 'X'): f_add,
+            ('T', 'L'): f_add,
+            ('T', 'P'): f_add,  # Allow transition to decimal point
+            ('H', 'D'): f_add,
+            ('H', 'M'): f_add,
+            ('H', 'T'): f_add,
+            ('H', 'H'): f_add,
+            ('H', 'X'): f_add,
+            ('H', 'L'): f_add,
+            ('H', 'P'): f_add,  # Allow transition to decimal point
+            ('X', 'D'): f_add,
+            ('X', 'M'): f_add,
+            ('X', 'T'): f_add,
+            ('X', 'H'): f_add,
+            ('X', 'X'): f_add,
+            ('X', 'L'): f_add,
+            ('X', 'P'): f_add,  # Allow transition to decimal point
+            ('L', 'D'): f_add,
+            ('L', 'M'): f_add,
+            ('L', 'T'): f_add,
+            ('L', 'H'): f_add,
+            ('L', 'X'): f_add,
+            ('L', 'L'): f_add,
+            ('L', 'P'): f_add,  # Allow transition to decimal point
+            ('P', 'D'): f_add,  # Allow digits after decimal point
+            ('P', 'Z'): f_add,  # Allow zero after decimal point
+            ('*', 'F'): f_ret,
+            ('D', 'F'): f_ret,
+            ('H', 'F'): f_ret,
+            ('L', 'F'): f_ret,
+            ('T', 'F'): f_ret,
+            ('M', 'F'): f_ret,
+            ('X', 'F'): f_ret,
+            ('P', 'F'): f_ret,
+            ('O', 'F'): f_ret,
         }
+        self.state = 'S'
+        self.value = 0
 
     def transition(self, token):
         value, label = token
@@ -371,34 +406,126 @@ def special_case_handler(text):
 
 
 def tokenize(text):
-    """Tokenize the input text into number words."""
+    """Tokenize the input text into number words, handling decimals."""
     # First, try to handle any special cases
     special, special_tokens = special_case_handler(text)
     if special and special_tokens:
         tokens = special_tokens  # Use the special tokens directly, skip further splitting
+        decimal_tokens = []
     else:
-        # Split the text into words
-        words = text.lower().split()
-        tokens = []
-        for word in words:
-            word = word.replace('-', '')
-            parts = split_compound(word)
-            if parts:
-                tokens.extend(parts)
-            else:
-                if word in VOCAB:
-                    tokens.append(word)
+        # Split at decimal point words
+        words = text.lower().replace('-', '').split()
+        if 'komma' in words:
+            idx = words.index('komma')
+            int_words = words[:idx]
+            dec_words = words[idx+1:]
+            decimal_tokens = []
+            tokens = []
+            for word in int_words:
+                if word in ('an', 'a'):
+                    continue  # skip joiners
+                parts = split_compound(word)
+                if parts:
+                    tokens.extend(parts)
                 else:
-                    found = False
-                    for joiner in ['a', 'an']:
-                        if joiner in word:
-                            parts = word.split(joiner)
-                            if all(part in VOCAB for part in parts):
-                                tokens.extend(parts)
-                                found = True
-                                break
-                    if not found:
-                        raise ValueError(f"Invalid number word: '{word}' in {text}")
+                    if word in VOCAB:
+                        tokens.append(word)
+                    else:
+                        found = False
+                        for joiner in ['a', 'an']:
+                            if joiner in word:
+                                parts = word.split(joiner)
+                                if all(part in VOCAB for part in parts):
+                                    tokens.extend(parts)
+                                    found = True
+                                    break
+                        if not found:
+                            raise ValueError(f"Invalid number word: '{word}' in {text}")
+            for word in dec_words:
+                parts = split_compound(word)
+                if parts:
+                    decimal_tokens.extend(parts)
+                else:
+                    if word in VOCAB:
+                        decimal_tokens.append(word)
+                    else:
+                        found = False
+                        for joiner in ['a', 'an']:
+                            if joiner in word:
+                                parts = word.split(joiner)
+                                if all(part in VOCAB for part in parts):
+                                    decimal_tokens.extend(parts)
+                                    found = True
+                                    break
+                        if not found:
+                            raise ValueError(f"Invalid number word: '{word}' in {text}")
+        elif 'punkt' in words:
+            idx = words.index('punkt')
+            int_words = words[:idx]
+            dec_words = words[idx+1:]
+            decimal_tokens = []
+            tokens = []
+            for word in int_words:
+                if word in ('an', 'a'):
+                    continue  # skip joiners
+                parts = split_compound(word)
+                if parts:
+                    tokens.extend(parts)
+                else:
+                    if word in VOCAB:
+                        tokens.append(word)
+                    else:
+                        found = False
+                        for joiner in ['a', 'an']:
+                            if joiner in word:
+                                parts = word.split(joiner)
+                                if all(part in VOCAB for part in parts):
+                                    tokens.extend(parts)
+                                    found = True
+                                    break
+                        if not found:
+                            raise ValueError(f"Invalid number word: '{word}' in {text}")
+            for word in dec_words:
+                parts = split_compound(word)
+                if parts:
+                    decimal_tokens.extend(parts)
+                else:
+                    if word in VOCAB:
+                        decimal_tokens.append(word)
+                    else:
+                        found = False
+                        for joiner in ['a', 'an']:
+                            if joiner in word:
+                                parts = word.split(joiner)
+                                if all(part in VOCAB for part in parts):
+                                    decimal_tokens.extend(parts)
+                                    found = True
+                                    break
+                        if not found:
+                            raise ValueError(f"Invalid number word: '{word}' in {text}")
+        else:
+            decimal_tokens = []
+            tokens = []
+            for word in words:
+                if word in ('an', 'a'):
+                    continue  # skip joiners
+                parts = split_compound(word)
+                if parts:
+                    tokens.extend(parts)
+                else:
+                    if word in VOCAB:
+                        tokens.append(word)
+                    else:
+                        found = False
+                        for joiner in ['a', 'an']:
+                            if joiner in word:
+                                parts = word.split(joiner)
+                                if all(part in VOCAB for part in parts):
+                                    tokens.extend(parts)
+                                    found = True
+                                    break
+                        if not found:
+                            raise ValueError(f"Invalid number word: '{word}' in {text}")
     # Flatten tokens in case any are lists (shouldn't be, but for safety)
     flat_tokens = []
     for t in tokens:
@@ -407,64 +534,84 @@ def tokenize(text):
         else:
             flat_tokens.append(t)
     tokens = flat_tokens
-    decimal_tokens = []
+    flat_decimals = []
+    for t in decimal_tokens:
+        if isinstance(t, list):
+            flat_decimals.extend(t)
+        else:
+            flat_decimals.append(t)
+    decimal_tokens = flat_decimals
     mul_tokens = []
     # Compute place values for the tokens
     try:
         pvs = compute_placevalues(tokens)
     except KeyError as e:
         raise ValueError(f"Invalid number word: '{e}' in {text}")
+    # Convert decimal_tokens to (value, label) tuples
+    decimal_tokens = [VOCAB[t] if isinstance(t, str) and t in VOCAB else t for t in decimal_tokens]
     return tokens, decimal_tokens, mul_tokens
 
 
 def split_compound(text):
-    """Split a compound word into its parts."""
+    """Recursively split a compound word into its parts."""
     # First try exact match
     if text in VOCAB:
         return [text]
-    
     # Try to split by common joiners
     for joiner in ['a', 'an']:
         if joiner in text:
             parts = text.split(joiner)
             if all(part in VOCAB for part in parts):
                 return parts
-    
-    # Try to find the longest matching prefix
+    # Try to find the longest matching prefix recursively
     for i in range(len(text), 0, -1):
         prefix = text[:i]
         if prefix in VOCAB:
             suffix = text[i:]
-            if suffix in VOCAB:
-                return [prefix, suffix]
-    
+            if not suffix:
+                return [prefix]
+            rest = split_compound(suffix)
+            if rest:
+                return [prefix] + rest
     return None
 
 
 def compute(tokens):
     """Compute the value of given tokens."""
+    result = 0
+    subtotal = 0
     fst = FST()
-    outputs = []
     last_placevalue = None
-    
-    for token in tokens:
+    i = 0
+    while i < len(tokens):
+        token = tokens[i]
         # Convert token to (value, label) tuple if it's a string
         if isinstance(token, str):
             if token not in VOCAB:
                 raise ValueError(f"Invalid token: {token}")
             token = VOCAB[token]
-        out = fst.transition(token)
-        if out:
-            outputs.append(out)
-            if last_placevalue and last_placevalue <= placevalue(outputs[-1]):
-                raise NumberParseException(f"Invalid sequence {outputs}")
-            last_placevalue = placevalue(outputs[-1])
-    
-    outputs.append(fst.transition((None, 'F')))
-    if last_placevalue and last_placevalue <= placevalue(outputs[-1]):
-        raise NumberParseException(f"Invalid sequence {outputs}")
-    
-    return sum(outputs)
+        value, label = token
+        if label in ('X', 'L'):
+            # Finalize subtotal from FST if not in start state
+            if fst.state != 'S':
+                subtotal += fst.transition((None, 'F'))
+            multiplier = subtotal if subtotal != 0 else 1
+            result += multiplier * value
+            # Reset subtotal and FST for next group
+            subtotal = 0
+            fst = FST()
+        else:
+            out = fst.transition(token)
+            if out:
+                subtotal += out
+                if last_placevalue and last_placevalue <= placevalue(subtotal):
+                    raise NumberParseException(f"Invalid sequence (subtotal): {subtotal}")
+                last_placevalue = placevalue(subtotal)
+        i += 1
+    if fst.state != 'S':
+        subtotal += fst.transition((None, 'F'))
+    result += subtotal
+    return result
 
 
 def compute_multipliers(tokens):
