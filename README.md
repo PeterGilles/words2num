@@ -8,10 +8,18 @@ This library provides comprehensive support for Luxembourgish (Lëtzebuergesch) 
 
 - Conversion of number words to digits
 - Date expression parsing with support for the Luxembourgish n-rule
+- Support for compound numbers and complex expressions
+- Proper handling of Luxembourgish-specific number forms
 
-## Usage
+## Installation
 
-Basic usage examples:
+The package is available directly from GitHub:
+
+```bash
+pip install git+https://github.com/petergilles/words2num.git
+```
+
+## Quick Start
 
 ```python
 from words2num import w2n, date_to_num_lb
@@ -29,22 +37,33 @@ date_to_num_lb("éischte Januar zweedausendvéier")  # Returns: "1.1.2004"
 
 ## Features
 
+### Number Conversion
+
+The library supports:
+
 - Cardinal numbers ("eent", "zwee", "dräi", etc.)
 - Ordinal numbers ("éischten", "zweeten", "drëtten", etc.)
 - Decimal numbers with "komma" or "punkt"
 - Complex compound forms ("zweehonnert", "dräihonnert", etc.)
 - Hyphenated forms ("véier-a-foffzeg")
-- Date expressions with n-rule implementation
+- Numbers up to billions
+
+### Date Parsing
+
+- Full dates (day.month.year)
+- Partial dates (day.month.)
+- Proper n-rule implementation
 - Month names and abbreviations
+- Hyphenated forms
 
-## Number Conversion Details
+## Examples
 
-The Luxembourgish number parser handles:
+### Number Conversion
 
 ```python
 from words2num import w2n
 
-# Cardinal numbers
+# Basic numbers
 w2n("eent", lang="lb")  # Returns: 1
 w2n("zwanzeg", lang="lb")  # Returns: 20
 w2n("eenhonnert", lang="lb")  # Returns: 100
@@ -54,8 +73,8 @@ w2n("zwee dausend dräihonnert véierafofzeg", lang="lb")  # Returns: 2354
 w2n("eng millioun fënnefhonnert dausend", lang="lb")  # Returns: 1500000
 
 # Decimals
-w2n("dräi komma véier", lang="lb")  # Returns: "3,4" (comma as decimal separator)
-w2n("zwee punkt néng fënnef", lang="lb")  # Returns: 2.95 (period as decimal separator)
+w2n("dräi komma véier", lang="lb")  # Returns: 3.4
+w2n("zwee punkt néng fënnef", lang="lb")  # Returns: 2.95
 
 # Special forms
 w2n("zwee-honnert", lang="lb")  # Returns: 200 (hyphenated)
@@ -64,42 +83,22 @@ w2n("een-honnert-eent", lang="lb")  # Returns: 101 (hyphenated)
 w2n("éischten", lang="lb")  # Returns: 1 (ordinal)
 ```
 
-## Date Parsing Details
-
-The Luxembourgish date parser handles expressions with proper n-rule implementation:
+### Date Parsing
 
 ```python
 from words2num import date_to_num_lb
 
-# Full dates (day.month.year)
+# Full dates
 date_to_num_lb("éischte Januar zweedausendvéier")  # Returns: "1.1.2004"
 date_to_num_lb("drëtte Mäerz nonnzénghonnertnénganzwanzeg")  # Returns: "3.3.1929"
-date_to_num_lb("fënneften August zweedausendeenandrësseg")  # Returns: "5.8.2031"
 
-# Partial dates (day.month.)
+# Partial dates
 date_to_num_lb("fënneften August")  # Returns: "5.8."
 date_to_num_lb("véierten Oktober")  # Returns: "4.10."
-date_to_num_lb("zéngten Abrëll")  # Returns: "10.4."
 
-# N-rule implementation
+# N-rule examples
 date_to_num_lb("éischten Abrëll")  # Returns: "1.4." (keeps -n before vowel A)
-date_to_num_lb("zweeten Oktober")  # Returns: "2.10." (keeps -n before vowel O)
-date_to_num_lb("drëtten Dezember")  # Returns: "3.12." (keeps -n before D)
-date_to_num_lb("véierten November")  # Returns: "4.11." (keeps -n before N)
-
 date_to_num_lb("éischte Februar")  # Returns: "1.2." (drops -n before F)
-date_to_num_lb("zweete Juli")  # Returns: "2.7." (drops -n before J)
-date_to_num_lb("drëtte Mäerz")  # Returns: "3.3." (drops -n before M)
-date_to_num_lb("véierte September")  # Returns: "4.9." (drops -n before S)
-
-# Abbreviations
-date_to_num_lb("éischte Jan")  # Returns: "1.1."  # Drops -n before J
-date_to_num_lb("zweete Feb")  # Returns: "2.2."  # Drops -n before F
-date_to_num_lb("drëtten Dez")  # Returns: "3.12."  # Keeps -n before D
-
-# Hyphenated forms
-date_to_num_lb("éischten-Abrëll")  # Returns: "1.4."
-date_to_num_lb("zweete-Mäerz")  # Returns: "2.3."
 ```
 
 ### The Luxembourgish N-Rule
@@ -110,20 +109,23 @@ The n-rule in Luxembourgish states that final -n is:
 
 This rule is correctly implemented in the date parser for ordinal forms.
 
-## Installation
+## Development
 
+### Running Tests
+
+```bash
+# Run all tests
+python -m pytest tests/
+
+# Run specific test suite
+python -m pytest tests/test_lb_numbers_various.py
+python -m pytest tests/test_lb_dates.py
 ```
-pip install words2num
-```
 
-## Running Tests
+### Contributing
 
-To test the Luxembourgish implementation:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-```python
-# Run the validation script that tests all functionality
-python validate_words2num_LB.py
+## License
 
-# Run specific test suite for date parsing
-python test_lb_dates.py
-```
+This project is licensed under the MIT License - see the LICENSE file for details.

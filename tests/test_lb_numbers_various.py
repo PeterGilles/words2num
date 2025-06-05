@@ -78,5 +78,39 @@ class TestLuxembourgishVariousNumbers(unittest.TestCase):
         self.assertEqual(w2n('dräiannonzeg', lang='lb'), 93)
         self.assertEqual(w2n('dräianzwanzeg', lang='lb'), 23)
 
+    def test_random_cases(self):
+        """Test various random number cases."""
+        test_cases = [
+            # Simple numbers
+            ("eent", 1),
+            ("zéng", 10),
+            ("honnert", 100),
+            ("dausend", 1000),
+            
+            # Compound numbers
+            ("dräiafofzeg", 53),
+            ("véierafofzeg", 54),
+            ("dräiandrësseg", 33),
+            
+            # Complex numbers
+            ("dräihonnertvéierafofzeg", 354),
+            ("véierdausendzweehonnert", 4200),
+            ("dräidausenddräihonnertdräizéng", 3313),
+            
+            # Numbers with joiners
+            ("dräi-an-achtzeg", 83),
+            ("véier-a-fofzeg", 54),
+            ("dräi-a-véierzeg", 43),
+            
+            # Large numbers
+            ("zéngdausenddräihonnert", 10300),
+            ("eelefdausendfofzéng", 11015),
+            ("zwielefdausend", 12000)
+        ]
+
+        for word, expected in test_cases:
+            with self.subTest(word=word):
+                self.assertEqual(w2n(word, lang='lb'), expected)
+
 if __name__ == '__main__':
     unittest.main() 
