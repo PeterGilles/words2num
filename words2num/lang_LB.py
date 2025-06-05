@@ -614,27 +614,24 @@ def tokenize(text):
 
 
 def split_compound(text):
-    """Recursively split a compound word into its parts, with special handling for year prefixes."""
-    # First try exact match
-    if text in VOCAB:
-        return [text]
-    # Special handling for year prefixes
-    for prefix in ['nonzénghonnert', 'uechtzénghonnert']:
-        if text.startswith(prefix):
-            suffix = text[len(prefix):]
-            if suffix:
-                rest = split_compound(suffix)
-                if rest:
-                    return [prefix] + rest
-            else:
-                return [prefix]
-    # Try to split by common joiners
-    for joiner in ['a', 'an']:
-        if joiner in text:
-            parts = text.split(joiner)
-            if all(part in VOCAB for part in parts):
-                return parts
-    # Try to find the longest matching prefix recursively
+    """Split compound numbers into their parts, robustly handling 'an'/'a' joiners and avoiding invalid tokens."""
+    text = text.lower()
+    # Handle year numbers first
+    if text.startswith('nonzénghonnert'):
+        return ["nonzénghonnert"] + split_compound(text[14:]) if text[14:] else ["nonzénghonnert"]
+    elif text.startswith('uechtzénghonnert'):
+        return ["uechtzénghonnert"] + split_compound(text[15:]) if text[15:] else ["uechtzénghonnert"]
+    
+    # Special case: if word starts with 't' but is a valid word without it, try both versions
+    if text.startswith('t'):
+        # Try the word without the 't' first
+        if text[1:] in VOCAB:
+            return [text[1:]]
+        # If that doesn't work, try with the 't' as part of the word
+        if text in VOCAB:
+            return [text]
+    
+    # Prefer longest left VOCAB match
     for i in range(len(text), 0, -1):
         prefix = text[:i]
         if prefix in VOCAB:
@@ -642,9 +639,26 @@ def split_compound(text):
             if not suffix:
                 return [prefix]
             rest = split_compound(suffix)
-            if rest:
-                return [prefix] + rest
-    return None
+            if all(r in VOCAB or r == '' for r in rest):
+                return [prefix] + [r for r in rest if r]
+    
+    # Try to split at 'an' or 'a' joiners (not at the start)
+    for joiner in ['an', 'a']:
+        idx = text.find(joiner)
+        if idx > 0:
+            left = text[:idx]
+            right = text[idx+len(joiner):]
+            if left and right:
+                left_tokens = split_compound(left)
+                right_tokens = split_compound(right)
+                if all(t in VOCAB for t in left_tokens + right_tokens):
+                    return left_tokens + right_tokens
+    
+    # If we get here and the word is in VOCAB, return it as is
+    if text in VOCAB:
+        return [text]
+    
+    return [text]
 
 
 def compute(tokens):
