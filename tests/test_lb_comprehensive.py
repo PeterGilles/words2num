@@ -300,6 +300,7 @@ class TestLuxembourgishComprehensive(unittest.TestCase):
             ('nonzénghonnertdräizéng', 1913),
             ('nonzénghonnertzéng', 1910),
             ('nonzénghonnertnénganzwanzeg', 1929),
+            ('nonzénghonnertsiwenandrësseg', 1937),
             # 2000s (should be cardinal)
             ('zweedausend', 2000),
             ('zweedausenddräizéng', 2013),
