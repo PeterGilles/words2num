@@ -616,6 +616,11 @@ def tokenize(text):
 def split_compound(text):
     """Split compound numbers into their parts, robustly handling 'an'/'a' joiners and avoiding invalid tokens."""
     text = text.lower()
+    
+    # First check if the entire word is in VOCAB
+    if text in VOCAB:
+        return [text]
+    
     # Handle year numbers first
     if text.startswith('nonzénghonnert'):
         return ["nonzénghonnert"] + split_compound(text[14:]) if text[14:] else ["nonzénghonnert"]
@@ -631,6 +636,22 @@ def split_compound(text):
         if text in VOCAB:
             return [text]
     
+    # Handle compound numbers with 'an' or 'a' joiners
+    for joiner in ['an', 'a']:
+        if joiner in text:
+            parts = text.split(joiner)
+            if len(parts) == 2:
+                left, right = parts
+                # Check if the compound form exists in VOCAB
+                compound = f"{left}{joiner}{right}"
+                if compound in VOCAB:
+                    return [compound]
+                # If not, try to split further
+                left_tokens = split_compound(left)
+                right_tokens = split_compound(right)
+                if all(t in VOCAB for t in left_tokens + right_tokens):
+                    return left_tokens + right_tokens
+    
     # Prefer longest left VOCAB match
     for i in range(len(text), 0, -1):
         prefix = text[:i]
@@ -641,22 +662,6 @@ def split_compound(text):
             rest = split_compound(suffix)
             if all(r in VOCAB or r == '' for r in rest):
                 return [prefix] + [r for r in rest if r]
-    
-    # Try to split at 'an' or 'a' joiners (not at the start)
-    for joiner in ['an', 'a']:
-        idx = text.find(joiner)
-        if idx > 0:
-            left = text[:idx]
-            right = text[idx+len(joiner):]
-            if left and right:
-                left_tokens = split_compound(left)
-                right_tokens = split_compound(right)
-                if all(t in VOCAB for t in left_tokens + right_tokens):
-                    return left_tokens + right_tokens
-    
-    # If we get here and the word is in VOCAB, return it as is
-    if text in VOCAB:
-        return [text]
     
     return [text]
 
