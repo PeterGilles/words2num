@@ -256,6 +256,13 @@ VOCAB = {
     # Year prefixes for general year parsing
     'nonzénghonnert': (1900, 'H'),
     'uechtzénghonnert': (1800, 'H'),
+    
+    # Add missing compound forms for tens in VOCAB
+    'fënnefasiechzeg': (65, 'TENS'),
+    'siwenasiwwenzeg': (77, 'TENS'),
+    'aachtasiwwenzeg': (88, 'TENS'),
+    'néngasiwwenzeg': (99, 'TENS'),
+    'eendausend': (1000, 'THOUSAND')
 }
 
 # Handle composite forms from decades
@@ -289,113 +296,39 @@ for i in range(1, 10):
         VOCAB[compound] = (ten_val + i, 'M')
 
 
-class FST:
-    def __init__(self):
-        def f_zero(self, n):
-            assert n == 0
-            self.value = n
-
-        def f_add(self, n):
-            self.value += n
-
-        def f_mul(self, n):
-            output = self.value * n
-            self.value = 0
-            return output
-
-        def f_mul_hundred(self, n):
-            assert n == 100
-            self.value *= n
-
-        def f_ret(self, _):
-            return self.value
-        
-        def f_ordinal(self, n):
-            # Ordinals just return their value directly
-            return n
-
-        # Define the edges for the FST
-        self.edges = {
-            ('S', 'Z'): f_zero,
-            ('S', 'D'): f_add,
-            ('S', 'M'): f_add,
-            ('S', 'T'): f_add,
-            ('S', 'H'): f_add,
-            ('S', 'X'): f_add,
-            ('S', 'L'): f_add,
-            ('S', 'O'): f_ordinal,
-            ('D', 'D'): f_add,
-            ('D', 'M'): f_add,
-            ('D', 'T'): f_add,
-            ('D', 'H'): f_add,
-            ('D', 'X'): f_add,
-            ('D', 'L'): f_add,
-            ('D', 'P'): f_add,  # Allow transition to decimal point
-            ('M', 'D'): f_add,
-            ('M', 'M'): f_add,
-            ('M', 'T'): f_add,
-            ('M', 'H'): f_add,
-            ('M', 'X'): f_add,
-            ('M', 'L'): f_add,
-            ('M', 'P'): f_add,  # Allow transition to decimal point
-            ('T', 'D'): f_add,
-            ('T', 'M'): f_add,
-            ('T', 'T'): f_add,
-            ('T', 'H'): f_add,
-            ('T', 'X'): f_add,
-            ('T', 'L'): f_add,
-            ('T', 'P'): f_add,  # Allow transition to decimal point
-            ('H', 'D'): f_add,
-            ('H', 'M'): f_add,
-            ('H', 'T'): f_add,
-            ('H', 'H'): f_add,
-            ('H', 'X'): f_add,
-            ('H', 'L'): f_add,
-            ('H', 'P'): f_add,  # Allow transition to decimal point
-            ('X', 'D'): f_add,
-            ('X', 'M'): f_add,
-            ('X', 'T'): f_add,
-            ('X', 'H'): f_add,
-            ('X', 'X'): f_add,
-            ('X', 'L'): f_add,
-            ('X', 'P'): f_add,  # Allow transition to decimal point
-            ('L', 'D'): f_add,
-            ('L', 'M'): f_add,
-            ('L', 'T'): f_add,
-            ('L', 'H'): f_add,
-            ('L', 'X'): f_add,
-            ('L', 'L'): f_add,
-            ('L', 'P'): f_add,  # Allow transition to decimal point
-            ('P', 'D'): f_add,  # Allow digits after decimal point
-            ('P', 'Z'): f_add,  # Allow zero after decimal point
-            ('*', 'F'): f_ret,
-            ('D', 'F'): f_ret,
-            ('H', 'F'): f_ret,
-            ('L', 'F'): f_ret,
-            ('T', 'F'): f_ret,
-            ('M', 'F'): f_ret,
-            ('X', 'F'): f_ret,
-            ('P', 'F'): f_ret,
-            ('O', 'F'): f_ret,
-        }
-        self.state = 'S'
-        self.value = 0
-
-    def transition(self, token):
-        value, label = token
-        try:
-            edge_fn = self.edges[(self.state, label)]
-        except KeyError:
-            raise NumberParseException(f"Invalid number state transition from {self.state} to {label}")
-        self.state = label
-        return edge_fn(self, value)
-
-    def _get_joiner(self, next_word: str) -> str:
-        """Get the appropriate joiner based on the next word."""
-        # Use 'a' for specific numbers
-        if next_word in ['véier', 'fënnef', 'fofzeg', 'sechs', 'sechzeg', 'siwen', 'siwwenzeg']:
-            return 'a'
-        return 'an'
+def compute(tokens):
+    """Compute the value of a sequence of tokens (Luxembourgish logic)."""
+    total = 0
+    subtotal = 0
+    print('DEBUG: compute tokens:', tokens)
+    for token in tokens:
+        print('DEBUG: processing token:', token)
+        if isinstance(token, str):
+            if token in VOCAB:
+                value, token_type = VOCAB[token]
+            else:
+                print(f'DEBUG: token {token} not in VOCAB')
+                continue
+        else:
+            value, token_type = token
+        print(f'DEBUG: token={token}, value={value}, type={token_type}')
+        if token_type == 'THOUSAND':
+            if subtotal == 0:
+                subtotal = 1
+            total += subtotal * 1000
+            subtotal = 0
+        elif token_type == 'H':
+            if subtotal != 0:
+                total += subtotal
+                subtotal = 0
+            subtotal += value
+        elif token_type in ('TENS', 'UNIT', 'D', 'M', 'T', 'X', 'L'):
+            subtotal += value
+        elif token_type == 'O':
+            subtotal += value
+    total += subtotal
+    print('DEBUG: final total:', total)
+    return total
 
 
 def compute_placevalues(tokens):
@@ -614,45 +547,84 @@ def tokenize(text):
 
 
 def split_compound(text):
-    """Split compound numbers into their parts, robustly handling 'an'/'a' joiners and avoiding invalid tokens."""
+    """Split compound numbers into their parts, handling Luxembourgish number structure.
+    
+    Rules:
+    1. Ordinals end in -ten
+    2. Years use specific patterns (e.g., nonzénghonnert)
+    3. Compound numbers use 'an' or 'a' as joiners:
+       - 'a' before véierzeg, fofzeg, sechzeg, siechzeg, siwwenzeg
+       - 'an' before other tens
+    4. Hundreds can be combined with tens and units
+    """
     text = text.lower()
     
     # First check if the entire word is in VOCAB
     if text in VOCAB:
         return [text]
     
-    # Handle year numbers first
+    # Handle ordinals (end in -ten)
+    if text.endswith('ten'):
+        return [text]
+    
+    # Handle year numbers
     if text.startswith('nonzénghonnert'):
         return ["nonzénghonnert"] + split_compound(text[14:]) if text[14:] else ["nonzénghonnert"]
     elif text.startswith('uechtzénghonnert'):
         return ["uechtzénghonnert"] + split_compound(text[15:]) if text[15:] else ["uechtzénghonnert"]
     
-    # Special case: if word starts with 't' but is a valid word without it, try both versions
+    # Handle hundreds
+    if 'honnert' in text:
+        parts = text.split('honnert')
+        if len(parts) == 2:
+            left, right = parts
+            if left in VOCAB:
+                if not right:  # Just the hundreds
+                    return [f"{left}honnert"]
+                # Handle the part after 'honnert'
+                right_tokens = split_compound(right)
+                if all(t in VOCAB for t in right_tokens):
+                    return [f"{left}honnert"] + right_tokens
+    
+    # Handle compound numbers with 'an' or 'a' joiners
+    # First try with 'a' (before specific tens)
+    a_tens = ['véierzeg', 'fofzeg', 'sechzeg', 'siechzeg', 'siwwenzeg']
+    for tens in a_tens:
+        if tens in text:
+            # Try to find the compound form first
+            for prefix in VOCAB:
+                if prefix.endswith('a') and text == f"{prefix[:-1]}{tens}":
+                    return [text]
+            # If not found as compound, try splitting
+            parts = text.split('a' + tens)
+            if len(parts) == 2:
+                left, right = parts
+                if left in VOCAB and not right:  # e.g., "véierafofzeg"
+                    return [f"{left}a{tens}"]
+    
+    # Then try with 'an' (before other tens)
+    an_tens = ['zwanzeg', 'drësseg', 'achtzeg', 'nonzeg']
+    for tens in an_tens:
+        if tens in text:
+            # Try to find the compound form first
+            for prefix in VOCAB:
+                if prefix.endswith('an') and text == f"{prefix[:-2]}{tens}":
+                    return [text]
+            # If not found as compound, try splitting
+            parts = text.split('an' + tens)
+            if len(parts) == 2:
+                left, right = parts
+                if left in VOCAB and not right:  # e.g., "dräianzwanzeg"
+                    return [f"{left}an{tens}"]
+    
+    # Handle special case: if word starts with 't' but is a valid word without it
     if text.startswith('t'):
-        # Try the word without the 't' first
         if text[1:] in VOCAB:
             return [text[1:]]
-        # If that doesn't work, try with the 't' as part of the word
         if text in VOCAB:
             return [text]
     
-    # Handle compound numbers with 'an' or 'a' joiners
-    for joiner in ['an', 'a']:
-        if joiner in text:
-            parts = text.split(joiner)
-            if len(parts) == 2:
-                left, right = parts
-                # Check if the compound form exists in VOCAB
-                compound = f"{left}{joiner}{right}"
-                if compound in VOCAB:
-                    return [compound]
-                # If not, try to split further
-                left_tokens = split_compound(left)
-                right_tokens = split_compound(right)
-                if all(t in VOCAB for t in left_tokens + right_tokens):
-                    return left_tokens + right_tokens
-    
-    # Prefer longest left VOCAB match
+    # Try to find the longest prefix that matches a word in VOCAB
     for i in range(len(text), 0, -1):
         prefix = text[:i]
         if prefix in VOCAB:
@@ -664,44 +636,6 @@ def split_compound(text):
                 return [prefix] + [r for r in rest if r]
     
     return [text]
-
-
-def compute(tokens):
-    """Compute the value of given tokens."""
-    result = 0
-    subtotal = 0
-    fst = FST()
-    last_placevalue = None
-    i = 0
-    while i < len(tokens):
-        token = tokens[i]
-        # Convert token to (value, label) tuple if it's a string
-        if isinstance(token, str):
-            if token not in VOCAB:
-                raise ValueError(f"Invalid token: {token}")
-            token = VOCAB[token]
-        value, label = token
-        if label in ('X', 'L'):
-            # Finalize subtotal from FST if not in start state
-            if fst.state != 'S':
-                subtotal += fst.transition((None, 'F'))
-            multiplier = subtotal if subtotal != 0 else 1
-            result += multiplier * value
-            # Reset subtotal and FST for next group
-            subtotal = 0
-            fst = FST()
-        else:
-            out = fst.transition(token)
-            if out:
-                subtotal += out
-                if last_placevalue and last_placevalue <= placevalue(subtotal):
-                    raise NumberParseException(f"Invalid sequence (subtotal): {subtotal}")
-                last_placevalue = placevalue(subtotal)
-        i += 1
-    if fst.state != 'S':
-        subtotal += fst.transition((None, 'F'))
-    result += subtotal
-    return result
 
 
 def compute_multipliers(tokens):
