@@ -243,15 +243,59 @@ VOCAB = {
     
     # Ordinal numbers - must be processed differently from cardinals
     'éischten': (1, 'O'),
+    'éischte': (1, 'O'),
     'zweeten': (2, 'O'),
+    'zweete': (2, 'O'),
     'drëtten': (3, 'O'),
+    'drëtte': (3, 'O'),
     'véierten': (4, 'O'),
+    'véierte': (4, 'O'),
     'fënneften': (5, 'O'),
+    'fënnefte': (5, 'O'),
     'sechsten': (6, 'O'),
+    'sechste': (6, 'O'),
     'siwenten': (7, 'O'),
+    'siwente': (7, 'O'),
     'aachten': (8, 'O'),
+    'aachte': (8, 'O'),
     'néngten': (9, 'O'),
+    'néngte': (9, 'O'),
     'zéngten': (10, 'O'),
+    'zéngte': (10, 'O'),
+    'eeleften': (11, 'O'),
+    'eelefte': (11, 'O'),
+    'zwieleften': (12, 'O'),
+    'zwieleft': (12, 'O'),
+    'dräizéngten': (13, 'O'),
+    'dräizéngte': (13, 'O'),
+    'véierzéngten': (14, 'O'),
+    'véierzéngte': (14, 'O'),
+    'fofzéngten': (15, 'O'),
+    'fofzéngte': (15, 'O'),
+    'siechzéngten': (16, 'O'),
+    'siechzéngte': (16, 'O'),
+    'siwenzéngten': (17, 'O'),
+    'siwenzéngte': (17, 'O'),
+    'uechtzéngten': (18, 'O'),
+    'uechtzéngte': (18, 'O'),
+    'nonzéngten': (19, 'O'),
+    'nonzéngte': (19, 'O'),
+    'zwanzegsten': (20, 'O'),
+    'zwanzegste': (20, 'O'),
+    'drëssegsten': (30, 'O'),
+    'drëssegste': (30, 'O'),
+    'véierzegsten': (40, 'O'),
+    'véierzegste': (40, 'O'),
+    'fofzegsten': (50, 'O'),
+    'fofzegste': (50, 'O'),
+    'sechzegsten': (60, 'O'),
+    'sechzegste': (60, 'O'),
+    'siwenzegsten': (70, 'O'),
+    'siwenzegste': (70, 'O'),
+    'achtzegsten': (80, 'O'),
+    'achtzegste': (80, 'O'),
+    'nonzegsten': (90, 'O'),
+    'nonzegste': (90, 'O'),
     
     # Year prefixes for general year parsing
     'nonzénghonnert': (1900, 'H'),
@@ -550,7 +594,7 @@ def split_compound(text):
     """Split compound numbers into their parts, handling Luxembourgish number structure.
     
     Rules:
-    1. Ordinals end in -ten
+    1. Ordinals end in -ten or -te
     2. Years use specific patterns (e.g., nonzénghonnert)
     3. Compound numbers use 'an' or 'a' as joiners:
        - 'a' before véierzeg, fofzeg, sechzeg, siechzeg, siwwenzeg
@@ -563,8 +607,8 @@ def split_compound(text):
     if text in VOCAB:
         return [text]
     
-    # Handle ordinals (end in -ten)
-    if text.endswith('ten'):
+    # Handle ordinals (end in -ten or -te)
+    if text.endswith('ten') or text.endswith('te'):
         return [text]
     
     # Handle year numbers
@@ -695,7 +739,7 @@ def evaluate(text):
         return f"{tokens[0][0]}."
         
     # Detect special case of two tokens: digit followed by tens place
-    # e.g., "véier foffzeg" meaning "four-fifty" (54)
+    # e.g., "véier fofzeg" meaning "four-fifty" (54)
     if len(tokens) == 2 and tokens[0][1] == 'D' and tokens[1][1] == 'T':
         result = tokens[1][0] + tokens[0][0]
         return result * compute_multipliers(mul_tokens)
